@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "public": "sillage-perfume-site",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
