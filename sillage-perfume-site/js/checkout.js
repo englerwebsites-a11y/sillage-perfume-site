@@ -199,4 +199,7 @@
   dialog.addEventListener('close', () => { pending = null; placeBtn.focus(); });
 
   renderAccount();
+  // Reflect the sign-in state as soon as it resolves, so a returning
+  // visitor sees their account without refreshing.
+  document.addEventListener('sillage:auth', renderAccount);
 })();

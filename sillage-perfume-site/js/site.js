@@ -1,7 +1,7 @@
-/* Sillage — shared site code: demo accounts, subscriptions, mobile menu.
-   Accounts are stored in this browser's localStorage only. This is a
-   front-end demo: a real store needs a server, hashed passwords and a
-   payment provider. */
+/* Sillage — shared site code: cloud accounts, subscriptions, mobile menu.
+   Accounts use Firebase Authentication and Cloud Firestore, so they sync
+   across devices. This is still a front-end demo: a real store also needs
+   a payment provider and server-side order handling. */
 
 const Store = {
   get(key, fallback) {
@@ -100,82 +100,172 @@ function findFragrance(id) {
   return FRAGRANCES.find(f => f.id === id) || null;
 }
 
-/* ---------- accounts ---------- */
+/* ---------- accounts ----------
+   Firebase Authentication + Cloud Firestore. Accounts live in the cloud,
+   so signing in works on any device; a per-device cache keeps pages
+   rendering instantly and working offline. */
 const Auth = (function () {
-  const ACCOUNTS = 'sillage_accounts';
-  const SESSION = 'sillage_session';
+  const CACHE = 'sillage_profiles';  // { uid: profile } cached on this device
+  const SESSION = 'sillage_session'; // uid of the account last used here
+  const SAMPLE = 'sample';
 
-  // Not real security — just keeps passwords out of plain sight in the demo.
-  function hash(str) {
-    let h = 5381;
-    for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
-    return 'd' + h.toString(16);
-  }
-  function norm(email) { return String(email || '').trim().toLowerCase(); }
-  function all() { return Store.get(ACCOUNTS, {}) || {}; }
-  function saveAll(a) { Store.set(ACCOUNTS, a); }
+  let uid = null;     // current account id (Firebase uid, or 'sample')
+  let profile = null; // current account data
 
-  function current() {
-    const email = Store.get(SESSION, null);
-    if (!email) return null;
-    return all()[email] || null;
-  }
+  function cacheGet(id) { return (Store.get(CACHE, {}) || {})[id] || null; }
+  function cacheSet(id, p) { const all = Store.get(CACHE, {}) || {}; all[id] = p; Store.set(CACHE, all); }
+  function cacheRemove(id) { const all = Store.get(CACHE, {}) || {}; delete all[id]; Store.set(CACHE, all); }
 
-  function save(user) {
-    const a = all();
-    a[user.email] = user;
-    saveAll(a);
-  }
+  function hasCloud() { return typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0; }
+  function userDoc(id) { return firebase.firestore().collection('users').doc(id); }
+
+  // Tell the page fresh account data is available so it can re-render.
+  function emit() { document.dispatchEvent(new CustomEvent('sillage:auth')); }
+
+  // Restore this device's last session instantly, from cache.
+  (function restore() {
+    const id = Store.get(SESSION, null);
+    if (id) { uid = id; profile = cacheGet(id); }
+  })();
 
   function splitName(name) {
     const parts = name.trim().split(/\s+/);
     return { first: parts[0] || '', last: parts.slice(1).join(' ') };
   }
 
-  function signUp(name, email, password) {
+  function friendlyError(code) {
+    return {
+      'auth/email-already-in-use': 'An account with that email already exists. Sign in instead.',
+      'auth/invalid-email': 'Enter a valid email address, like name@example.com.',
+      'auth/weak-password': 'Use a password with at least 8 characters.',
+      'auth/invalid-credential': "That email and password don't match an account.",
+      'auth/wrong-password': "That email and password don't match an account.",
+      'auth/user-not-found': "That email and password don't match an account.",
+      'auth/too-many-requests': 'Too many attempts. Wait a moment and try again.',
+      'auth/network-request-failed': "Can't reach the server. Check your connection and try again."
+    }[code] || 'Something went wrong. Please try again.';
+  }
+
+  // Keep the session in step with Firebase: paint from cache instantly, then
+  // refresh from the cloud so changes made on other devices show up here.
+  if (hasCloud()) {
+    firebase.auth().onAuthStateChanged(u => {
+      if (u) {
+        uid = u.uid;
+        Store.set(SESSION, uid);
+        profile = cacheGet(uid) || {
+          name: u.displayName || '',
+          email: u.email || '',
+          createdAt: new Date().toISOString(),
+          address: null,
+          subscription: null
+        };
+        cacheSet(uid, profile);
+        emit();
+        userDoc(uid).get().then(snap => {
+          if (snap.exists) {
+            const cloud = snap.data();
+            if (JSON.stringify(cloud) !== JSON.stringify(profile)) {
+              profile = cloud;
+              cacheSet(uid, cloud);
+            }
+          } else {
+            userDoc(uid).set(profile).catch(() => {});
+          }
+          emit();
+        }).catch(() => {});
+      } else {
+        const id = Store.get(SESSION, null);
+        if (id === SAMPLE) { uid = SAMPLE; profile = cacheGet(SAMPLE); }
+        else { uid = null; profile = null; }
+        emit();
+      }
+    });
+  }
+
+  function current() { return profile; }
+
+  function save(user) {
+    if (!uid) return;
+    profile = user;
+    cacheSet(uid, user);
+    if (uid !== SAMPLE && hasCloud()) userDoc(uid).set(user).catch(() => {});
+  }
+
+  async function signUp(name, email, password) {
     name = String(name || '').trim();
-    email = norm(email);
+    email = String(email || '').trim().toLowerCase();
     if (!name) return { error: 'Enter your name.' };
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'Enter a valid email address, like name@example.com.' };
     if (String(password || '').length < 8) return { error: 'Use a password with at least 8 characters.' };
-    const a = all();
-    if (a[email]) return { error: 'An account with that email already exists. Sign in instead.' };
-    const n = splitName(name);
-    const user = {
-      name, email,
-      pw: hash(email + ':' + password),
-      createdAt: new Date().toISOString(),
-      address: { first: n.first, last: n.last, street: '', city: '', zip: '' },
-      subscription: null
-    };
-    a[email] = user;
-    saveAll(a);
-    Store.set(SESSION, email);
-    return { user };
-  }
-
-  function signIn(email, password) {
-    email = norm(email);
-    const u = all()[email];
-    if (!u || u.pw !== hash(email + ':' + password)) {
-      return { error: "That email and password don't match an account in this browser." };
+    if (!hasCloud()) return { error: "Can't reach the server. Check your connection and try again." };
+    try {
+      const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const n = splitName(name);
+      const user = {
+        name, email,
+        createdAt: new Date().toISOString(),
+        address: { first: n.first, last: n.last, street: '', city: '', zip: '' },
+        subscription: null
+      };
+      uid = cred.user.uid;
+      profile = user;
+      Store.set(SESSION, uid);
+      cacheSet(uid, user);
+      cred.user.updateProfile({ displayName: name }).catch(() => {});
+      await userDoc(uid).set(user).catch(() => {});
+      return { user };
+    } catch (e) {
+      return { error: friendlyError(e && e.code) };
     }
-    Store.set(SESSION, email);
-    return { user: u };
   }
 
-  function signOut() { Store.remove(SESSION); }
+  async function signIn(email, password) {
+    email = String(email || '').trim().toLowerCase();
+    if (!hasCloud()) return { error: "Can't reach the server. Check your connection and try again." };
+    try {
+      const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+      uid = cred.user.uid;
+      Store.set(SESSION, uid);
+      try {
+        const snap = await userDoc(uid).get();
+        if (snap.exists) { profile = snap.data(); cacheSet(uid, profile); }
+      } catch (e2) {
+        profile = cacheGet(uid);
+      }
+      if (!profile) {
+        profile = { name: cred.user.displayName || '', email, createdAt: new Date().toISOString(), address: null, subscription: null };
+        cacheSet(uid, profile);
+      }
+      return { user: profile };
+    } catch (e) {
+      return { error: friendlyError(e && e.code) };
+    }
+  }
 
-  function deleteAccount() {
-    const u = current();
-    if (!u) return;
-    const a = all();
-    delete a[u.email];
-    saveAll(a);
-    signOut();
+  function signOut() {
+    if (uid !== SAMPLE && hasCloud()) firebase.auth().signOut().catch(() => {});
+    Store.remove(SESSION);
+    uid = null;
+    profile = null;
+  }
+
+  async function deleteAccount() {
+    const id = uid;
+    if (!id) return;
+    if (id !== SAMPLE) {
+      try { await userDoc(id).delete(); } catch (e) {}
+      const u = hasCloud() ? firebase.auth().currentUser : null;
+      if (u) { try { await u.delete(); } catch (e) {} }
+    }
+    cacheRemove(id);
+    Store.remove(SESSION);
+    uid = null;
+    profile = null;
   }
 
   // A ready-made account with a few months of history, for quick walkthroughs.
+  // Lives only on this device (no real sign-in needed).
   function useSample() {
     const now = new Date().toISOString();
     const started = addDays(addMonths(now, -4), 6);
@@ -192,7 +282,6 @@ const Auth = (function () {
     const user = {
       name: 'Jordan Reyes',
       email: 'jordan@example.com',
-      pw: hash('jordan@example.com:sillage-demo'),
       createdAt: addDays(started, -2),
       address: { first: 'Jordan', last: 'Reyes', street: '128 Amberwood Lane', city: 'Portland', zip: '97201' },
       subscription: {
@@ -210,8 +299,10 @@ const Auth = (function () {
         history
       }
     };
-    save(user);
-    Store.set(SESSION, user.email);
+    uid = SAMPLE;
+    profile = user;
+    Store.set(SESSION, SAMPLE);
+    cacheSet(SAMPLE, user);
     return user;
   }
 

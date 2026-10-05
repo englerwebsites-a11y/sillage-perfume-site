@@ -91,7 +91,7 @@
         <p>Just looking around? Open a sample account with a few months of orders already in it.</p>
         <button class="btn btn-small" type="button" id="use-sample">Use the sample account</button>
       </div>
-      <p class="auth-note">Demo site: accounts are saved only in this browser. Don't use a real password.</p>
+      <p class="auth-note">Demo site: your account syncs securely across devices. Don't use a real password.</p>
     </div>
 
     <!-- ===== Signed in ===== -->
@@ -155,7 +155,7 @@
 <footer>
   <div class="wrap">
     <div class="footer-bottom">
-      <span>Demo site — accounts live only in this browser</span>
+      <span>Demo site — accounts sync across devices</span>
       <a href="support.html" class="footer-support">Customer support</a>
       <span>Sillage</span>
       <span class="site-credit">Site by Engler's</span>
@@ -163,6 +163,10 @@
   </div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/site.js"></script>
 <script src="js/account.js"></script>

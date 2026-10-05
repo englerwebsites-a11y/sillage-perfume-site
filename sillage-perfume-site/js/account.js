@@ -64,16 +64,16 @@
   showAuth(location.hash === '#create' ? 'signup' : 'signin');
 
   /* ---------- signed out ---------- */
-  $('signin-form').addEventListener('submit', e => {
+  $('signin-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const r = Auth.signIn($('si-email').value, $('si-pass').value);
+    const r = await Auth.signIn($('si-email').value, $('si-pass').value);
     if (r.error) { $('si-error').textContent = r.error; return; }
     afterAuth();
   });
 
-  $('signup-form').addEventListener('submit', e => {
+  $('signup-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const r = Auth.signUp($('su-name').value, $('su-email').value, $('su-pass').value);
+    const r = await Auth.signUp($('su-name').value, $('su-email').value, $('su-pass').value);
     if (r.error) { $('su-error').textContent = r.error; return; }
     afterAuth();
   });
@@ -395,9 +395,9 @@
     window.scrollTo(0, 0);
   });
 
-  $('delete-account').addEventListener('click', () => {
-    if (!confirm('Delete your account and its order history? This removes it from this browser.')) return;
-    Auth.deleteAccount();
+  $('delete-account').addEventListener('click', async () => {
+    if (!confirm('Delete your account and its order history? This permanently removes your account.')) return;
+    await Auth.deleteAccount();
     render();
     showNotice('Your account has been deleted.');
   });
@@ -431,6 +431,9 @@
   }
 
   render();
+  // Re-render when account data arrives or changes (sign-in resolving,
+  // or a sync from the cloud after a change was made on another device).
+  document.addEventListener('sillage:auth', render);
 
   if (params.get('welcome') === '1' && Auth.current()) {
     showNotice('Your subscription has started. Your first bottle is being prepared.');
