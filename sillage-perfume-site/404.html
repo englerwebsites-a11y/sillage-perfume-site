@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Page not found — Sillage</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="The page you're looking for doesn't exist. Head back to Sillage to browse the fragrance collection.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .error-stage{ padding:72px 24px 96px; display:flex; justify-content:center; }
+  .note-card{
+    position:relative; max-width:600px; width:100%;
+    background:var(--paper-2);
+    border:2px solid var(--ink);
+    padding:48px 40px 40px; text-align:center;
+    box-shadow:8px 8px 0 var(--ink);
+  }
+  .code-tag{
+    display:inline-block; font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--amber-deep); background:var(--paper);
+    border:1px dashed var(--ink); padding:5px 14px; margin-bottom:22px;
+  }
+  .error-code{
+    position:relative; display:inline-block;
+    font-size:clamp(4rem,14vw,6.5rem); font-weight:700; letter-spacing:-0.04em;
+    line-height:1;
+  }
+  .error-code svg{ position:absolute; left:-4%; bottom:-12px; width:108%; height:auto; }
+  .error-heading{ font-size:clamp(1.5rem,3.5vw,1.9rem); margin:22px 0 0; letter-spacing:-0.01em; }
+  .error-sub{ color:#5a5a5a; font-size:15.5px; margin:12px auto 6px; max-width:42ch; }
+  .buddy-wrap{ margin:26px auto 10px; max-width:300px; }
+  .buddy-wrap img{ width:100%; height:auto; display:block; }
+  .buddy-caption{
+    font-size:13.5px; color:var(--amber); letter-spacing:0.08em;
+    text-transform:uppercase; margin-top:10px;
+  }
+  .error-actions{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:30px; }
+  @media (max-width:520px){ .note-card{ padding:40px 22px 32px; } }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a href="index.html" class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none"><path d="M12 2c2.5 3.5 5 7 5 10.5A5 5 0 0 1 7 12.5C7 9 9.5 5.5 12 2z" stroke="#c1440e" stroke-width="1.6"/></svg>
+      Sillage
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">About</a></li>
+      <li><a href="products.html">The collection</a></li>
+      <li><a href="account.html">Account</a></li>
+      <li><a href="checkout.html">Checkout</a></li>
+    </ul>
+    <a href="products.html" class="nav-cta">Browse the collection</a>
+    <a href="support.html" class="nav-support" aria-label="Customer support" title="Customer support"><svg class="support-icon" viewBox="5158 4142 20923 22976" aria-hidden="true" focusable="false"><path fill="currentColor" fill-rule="evenodd" d="m7532.4 13220 1341.9-368.64c437.66-120.24 836.54 318.94 836.54 708.65v7086.7c0 389.71-398.93 828.89-836.54 708.65l-2579.5-708.61c-437.56-120.24-836.54-318.9-836.54-708.65v-5669.5c0-354.55 330.07-550.96 719.17-674.06 52.44-1537.7 476.19-3014.1 1207.8-4316 809.59-1440.7 1997.2-2670.5 3476.7-3536.2 1481.3-866.73 3135.3-1300.1 4786.4-1300.1s3305.1 433.37 4786.4 1300.1c1479.5 865.72 2667.1 2095.5 3476.7 3536.2 771.22 1372.4 1200.4 2938.6 1213.1 4566.2 359.52 123.91 656.58 318.62 656.58 659.6v5669.5c0 362.04-334.97 559.17-723.87 681.75-2150.5 4298-4397.4 5302.8-5793 5447-149 304.45-462.27 515.41-822.49 515.41h-2706.3c-503.22 0-914.95-411.73-914.95-914.95v-192.01c0-503.22 411.73-914.93 914.95-914.93h2706.3c339.15 0 636.68 187 794.68 462.96 989.55-118.54 2636.1-866.13 4402.6-4001.7l-1181.8 333.66c-425.81 120.23-813.99-318.93-813.99-708.63v-7086.7c0-389.71 388.11-828.89 813.99-708.65l1324.4 373.93c-71.25-1254.7-431.47-2459.8-1033.2-3530.5-697.15-1240.6-1717.4-2298.2-2986.5-3040.8-1267.4-741.55-2689.1-1112.4-4113.6-1112.4s-2846.3 370.8-4113.6 1112.4c-1269.1 742.6-2289.4 1800.2-2986.5 3040.8-563.09 1002-914.67 2121.7-1015.9 3289.5z"/></svg></a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu"><span></span><span></span></button>
+  </div>
+</nav>
+
+<main class="error-stage">
+  <div class="note-card">
+    <div class="code-tag">Error 404</div>
+
+    <div class="error-code">
+      404
+      <svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M4 12 C 40 4, 70 18, 100 10 S 160 4, 196 12" fill="none" stroke="#c1440e" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <h1 class="error-heading">This scent has evaporated.</h1>
+    <p class="error-sub">The page you're after isn't in our collection. Here's our developer, moments after finding out:</p>
+
+    <div class="buddy-wrap">
+      <img src="img/404-buddy.png" width="820" height="681" alt="A frustrated developer throwing a game controller after finding a bug in the code">
+      <div class="buddy-caption">our dev, moments ago</div>
+    </div>
+
+    <div class="error-actions">
+      <a href="index.html" class="btn btn-primary">Back to the homepage</a>
+      <a href="products.html" class="btn btn-outline-dark">Browse the collection</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>Demo site — accounts sync across devices</span>
+      <a href="support.html" class="footer-support">Customer support</a>
+      <span>Sillage</span>
+      <span class="site-credit">Site by Engler's</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/site.js"></script>
+</body>
+</html>
